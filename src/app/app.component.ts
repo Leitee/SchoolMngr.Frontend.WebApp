@@ -1,28 +1,41 @@
-﻿import { Component, AfterContentChecked } from '@angular/core';
-import { User, RolesEnum } from '@/_models';
-import { AuthenticationService } from './_commons';
-import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
+/*
+ * Copyright (c) Akveo 2019. All Rights Reserved.
+ * Licensed under the Single Application / Multi Application License.
+ * See LICENSE_SINGLE_APP / LICENSE_MULTI_APP in the 'docs' folder for license information on type of purchased license.
+ */
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AnalyticsService } from './_core/utils';
+import { InitUserService } from './_theme/services/init-user.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
+@Component({
+  selector: 'ngx-app',
+  template: '<router-outlet></router-outlet>',
+})
+export class AppComponent implements OnInit, OnDestroy {
 
-@Component({ selector: 'app', templateUrl: 'app.component.html' })
-export class AppComponent implements AfterContentChecked {
-    currentUser: User;
+  private destroy$: Subject<void> = new Subject<void>();
 
-    constructor(private authenticationService: AuthenticationService, private brkPointOns: BreakpointObserver) {
-        brkPointOns.observe([
-            Breakpoints.HandsetLandscape,
-            Breakpoints.HandsetPortrait
-        ]);
-    }
-    ngAfterContentChecked(): void {
-        this.currentUser = this.authenticationService.currentUserValue;
-    }
+  constructor(private analytics: AnalyticsService,
+              private initUserService: InitUserService) {
+              this.initUser();
+  }
 
-    get isAdmin() {
-        return this.currentUser && this.currentUser.role.id < RolesEnum.SUPERVISOR;
-    }
+  ngOnInit(): void {
+    this.analytics.trackPageViews();
+  }
 
-    logout() {
-        this.authenticationService.logout();
-    }
+  initUser() {
+    this.initUserService.initCurrentUser()
+      .pipe(
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

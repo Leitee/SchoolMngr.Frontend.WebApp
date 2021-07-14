@@ -1,0 +1,14 @@
+<div class="col-lg-12">
+    
+    <nb-card>
+        <nb-card-header>Products</nb-card-header>
+        <nb-card-body>
+            <ul>
+                <li *ngFor="let prod of (productsAsync | async)">
+                    <ngx-product-row [product]="prod">
+                    </ngx-product-row>
+                </li>
+            </ul>      
+      </nb-card-body>
+    </nb-card>
+</div>

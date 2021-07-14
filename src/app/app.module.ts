@@ -1,55 +1,66 @@
-﻿import { AppComponent } from '@/app.component';
-import { routing } from '@/app.routing';
-import { SharedModule } from '@/shared.module';
-import { JwtInterceptor, AppConfigService } from '@/_commons';
-import { AdminComponent, HomeComponent, GradeComponent, ExamComponent, AttendComponent, TeacherComponent, StudentComponent } from '@/_pages';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+/*
+ * Copyright (c) Akveo 2019. All Rights Reserved.
+ * Licensed under the Single Application / Multi Application License.
+ * See LICENSE_SINGLE_APP / LICENSE_MULTI_APP in the 'docs' folder for license information on type of purchased license.
+ */
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { EnrollComponent } from './_pages/enroll/enroll.component';
-import { LoaderInterceptor, MessageDialogInterceptor } from './_components';
-;
+import { APP_INITIALIZER, NgModule } from '@angular/core';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { CoreModule } from './_core/core.module';
+
+import { AppComponent } from './app.component';
+import { AppRoutingModule } from './app-routing.module';
+import { ThemeModule } from './_theme/theme.module';
+import { AuthModule } from './_auth/auth.module';
+
+import {
+  NbChatModule,
+  NbDatepickerModule,
+  NbDialogModule,
+  NbMenuModule,
+  NbSidebarModule,
+  NbToastrModule,
+  NbWindowModule,
+} from '@nebular/theme';
+import { AppConfigService } from './_core/services/app-config.service';
+import { SharedModule } from './_shared/shared.module';
 
 export function initConfig(config: AppConfigService) {
-    return () => config.load();
+  return () => config.load();
 }
 
 @NgModule({
-    imports: [
-        BrowserModule,
-        ReactiveFormsModule,
-        FormsModule,
-        HttpClientModule,
-        routing,
-        BrowserAnimationsModule,
-        SharedModule
-       ],
-    declarations: [
-        AppComponent,
-        HomeComponent,
-        AdminComponent,
-        GradeComponent,
-        ExamComponent,
-        AttendComponent,
-        TeacherComponent,
-        StudentComponent,
-        EnrollComponent
-    ],
-    providers: [
-        AppConfigService,
-        {
-            provide: APP_INITIALIZER,
-            useFactory: initConfig,
-            deps: [AppConfigService],
-            multi: true
-        },
-        { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: MessageDialogInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: LoaderInterceptor, multi: true }
-    ],
-    bootstrap: [AppComponent]
-})
+  declarations: [AppComponent],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    HttpClientModule,
+    AppRoutingModule,
 
+    AuthModule.forRoot(),
+
+    NbSidebarModule.forRoot(),
+    NbMenuModule.forRoot(),
+    NbDatepickerModule.forRoot(),
+    NbDialogModule.forRoot(),
+    NbWindowModule.forRoot(),
+    NbToastrModule.forRoot(),
+    NbChatModule.forRoot({
+      messageGoogleMapKey: 'AIzaSyA_wNuCzia92MAmdLRzmqitRGvCF7wCZPY', // TODO: retrive value from config
+    }),
+    CoreModule.forRoot(),
+    ThemeModule.forRoot(),
+  ],
+  providers: [
+    {
+        provide: APP_INITIALIZER,
+        useFactory: initConfig,
+        deps: [AppConfigService],
+        multi: true,
+    },
+    AppConfigService,
+  ],
+  bootstrap: [AppComponent],
+})
 export class AppModule { }

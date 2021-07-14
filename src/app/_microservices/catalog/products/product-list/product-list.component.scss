@@ -1,0 +1,25 @@
+@import '~@nebular/theme/styles/global/breakpoints';
+
+nb-card-body {
+    overflow: visible;
+    padding-top: 0;
+  
+    > * {
+      margin-top: 1rem;
+    }
+}
+
+ul {
+    padding: 0;
+}
+
+li {
+    border-bottom: thin solid #eee;
+    list-style: none;
+}
+
+@include media-breakpoint-down(is) {
+    nb-select {
+        display: none;
+    }
+}

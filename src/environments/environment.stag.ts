@@ -1,4 +1,9 @@
 export const environment = {
-  env: 'stag',
-  production: true
+  name: 'stag',
+  production: true,
+  apiUrl: 'http://localhost:3001/api',
+  testUser: {
+    token: {},
+    email: '',
+  },
 };

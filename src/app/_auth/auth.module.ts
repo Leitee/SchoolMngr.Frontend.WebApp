@@ -1,26 +1,108 @@
-import { SharedModule } from '@/shared.module';
-import { CommonModule } from '@angular/common';
-import { NgModule } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule, Routes } from '@angular/router';
-import { LoginComponent } from './login/login.component';
-import { RegisterComponent } from './register/register.component';
+/*
+ * Copyright (c) Akveo 2019. All Rights Reserved.
+ * Licensed under the Single Application / Multi Application License.
+ * See LICENSE_SINGLE_APP / LICENSE_MULTI_APP in the 'docs' folder for license information on type of purchased license.
+ */
 
-const routes: Routes = [
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
-  { path: 'login', component: LoginComponent },
-  { path: 'register', component: RegisterComponent }
+import { NgModule, ModuleWithProviders } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { HttpRequest } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import {
+  NbAuthJWTInterceptor,
+  NbAuthModule,
+  NB_AUTH_TOKEN_INTERCEPTOR_FILTER,
+  NbTokenLocalStorage,
+} from '@nebular/auth';
+import { AuthInterceptor } from '../_core/interceptors/auth.interceptor';
+import { AuthGuard } from '@/_core/guards/auth.guard';
+import { AdminGuard } from '../_core/guards/admin.guard';
+import { RoleProvider } from './role.provider';
+import { NbRoleProvider, NbSecurityModule } from '@nebular/security';
+
+import {
+  NgxLoginComponent,
+  NgxAuthComponent,
+  NgxAuthBlockComponent,
+  NgxLogoutComponent,
+  NgxRegisterComponent,
+  NgxRequestPasswordComponent,
+  NgxResetPasswordComponent,
+} from './components';
+
+import {
+  NbAlertModule,
+  NbCardModule,
+  NbIconModule,
+  NbLayoutModule,
+  NbCheckboxModule,
+  NbInputModule,
+  NbButtonModule,
+} from '@nebular/theme';
+import { AuthRoutingModule } from './auth-routing.module';
+import { authOptions } from '@/_shared/configs/auth.settings';
+import { authSettings } from '@/_shared/configs/access.settings';
+import { SharedModule } from '@/_shared/shared.module';
+
+const GUARDS = [AuthGuard, AdminGuard];
+const COMPONENTS = [
+  NgxLoginComponent,
+  NgxAuthComponent,
+  NgxLogoutComponent,
+  NgxRegisterComponent,
+  NgxRequestPasswordComponent,
+  NgxResetPasswordComponent,
+  NgxAuthBlockComponent,
 ];
 
+const NB_MODULES = [
+  NbIconModule,
+  NbLayoutModule,
+  NbCardModule,
+  NbAlertModule,
+  NbCheckboxModule,
+  NbInputModule,
+  NbButtonModule,
+];
+
+export function filterInterceptorRequest(req: HttpRequest<any>): boolean {
+  return ['/auth/login', '/auth/sign-up', '/auth/request-pass', '/auth/refresh-token', 'connect/token']
+    .some(url => req.url.includes(url));
+}
+
 @NgModule({
-  declarations: [RegisterComponent, LoginComponent],
+  declarations: [...COMPONENTS],
   imports: [
-    CommonModule,
+    AuthRoutingModule,
     ReactiveFormsModule,
-    FormsModule,
+    CommonModule,
     SharedModule,
-    RouterModule.forChild(routes)
+    ...NB_MODULES,
+    NbAuthModule.forRoot(authOptions),
   ],
-  exports: [RouterModule]
+  exports: [],
+  providers: [
+    NbSecurityModule.forRoot({
+      accessControl: authSettings,
+    }).providers,
+    {
+      provide: NbRoleProvider, useClass: RoleProvider,
+    },
+    {
+      provide: NbTokenLocalStorage, useClass: NbTokenLocalStorage,
+    },
+  ],
 })
-export class AuthModule { }
+export class AuthModule {
+  static forRoot(): ModuleWithProviders<AuthModule> {
+    return {
+      ngModule: AuthModule,
+      providers: [
+        { provide: NB_AUTH_TOKEN_INTERCEPTOR_FILTER, useValue: filterInterceptorRequest },
+        { provide: HTTP_INTERCEPTORS, useClass: NbAuthJWTInterceptor, multi: true },
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+        ...GUARDS],
+    };
+  }
+}
